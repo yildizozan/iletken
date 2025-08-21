@@ -1,0 +1,19 @@
+# Binary
+iletken
+iletken.exe
+
+# IDE
+.vscode/
+.idea/
+
+# Go
+*.log
+*.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config overrides
+iletken.local.yml
+iletken.production.yml
