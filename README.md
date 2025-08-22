@@ -1,17 +1,19 @@
-# İletken - HTTP Yönlendirici
+# İletken - HTTP Redirector
 
-**İletken**, Go 1.24 ve fasthttp kullanılarak geliştirilmiş, yüksek performanslı HTTP yönlendirici uygulamasıdır.
+**İletken** is a high-performance HTTP redirector application developed with Go 1.24 and fasthttp.
 
-## Özellikler
+## Features
 
-- ⚡ **Yüksek Performans**: fasthttp kütüphanesi ile optimize edilmiş
-- 📝 **YAML Yapılandırma**: spf13/viper ile esnek yapılandırma
-- 🔄 **Esnek Yönlendirme**: 301/302 status kodları ile kalıcı/geçici yönlendirmeler
-- 📊 **Structured Logging**: JSON/Text formatında detaylı loglama
-- 🛡️ **Graceful Shutdown**: Sinyal yakalama ile güvenli kapatma
-- ⚙️ **Kolay Konfigürasyon**: YAML dosyası ile basit kurulum
+- ⚡ **High Performance**: Optimized with fasthttp library
+- 📝 **YAML Configuration**: Flexible configuration with spf13/viper
+- 🔄 **Simple Redirects**: All redirects use 302 (temporary redirect) status code
+- 📊 **Structured Logging**: Detailed logging in JSON/Text format
+- 🛡️ **Graceful Shutdown**: Safe shutdown with signal handling
+- ⚙️ **Easy Configuration**: Simple setup with YAML file
+- 🏠 **Default Page**: Built-in index page showing service status
+- 🩺 **Health Check**: `/health` endpoint for monitoring
 
-## Kurulum
+## Installation
 
 ```bash
 git clone <repository>
@@ -20,11 +22,11 @@ go mod download
 go build -o iletken
 ```
 
-## Kullanım
+## Usage
 
-### 1. Yapılandırma
+### 1. Configuration
 
-`iletken.yml` dosyasını düzenleyin:
+Edit the `iletken.yml` file:
 
 ```yaml
 server:
@@ -46,52 +48,57 @@ logging:
   format: "json"
 ```
 
-### 2. Uygulamayı Çalıştırma
+### 2. Running the Application
 
 ```bash
-# Varsayılan iletken.yml ile
+# With default iletken.yml
 ./iletken
 
-# Farklı config dosyası ile
+# With different config file
 ./iletken -config /path/to/myconfig.yml
 
-# Versiyon bilgisi
+# Version information
 ./iletken -version
 ```
 
-### 3. Test
+### 3. Testing
 
 ```bash
-# HTTP isteği gönder
+# Send HTTP request
 curl -H "Host: devops.company.com" http://localhost:8080
 
 # Response:
-# HTTP/1.1 301 Moved Permanently
+# HTTP/1.1 302 Found
 # Location: https://hd.company.com/board/13
 ```
 
-## Yapılandırma Seçenekleri
+### 4. Endpoints
 
-### Sunucu Ayarları
-- `host`: Dinlenecek IP adresi
-- `port`: Port numarası
-- `read_timeout`: Okuma timeout'u
-- `write_timeout`: Yazma timeout'u  
-- `idle_timeout`: Boşta kalma timeout'u
+- `/` - Default index page with service statistics
+- `/health` - Health check endpoint (JSON response)
 
-### Yönlendirme Kuralları
-- `from`: Kaynak host (domain)
-- `to`: Hedef URL (tam URL olmalı)
+## Configuration Options
 
-**Not:** Tüm yönlendirmeler 302 (Temporary Redirect) status kodu ile yapılır.
+### Server Settings
+- `host`: IP address to listen on
+- `port`: Port number
+- `read_timeout`: Read timeout
+- `write_timeout`: Write timeout  
+- `idle_timeout`: Idle timeout
 
-### Loglama
-- `level`: Log seviyesi (debug, info, warn, error)
-- `format`: Log formatı (json, text)
+### Redirect Rules
+- `from`: Source host (domain)
+- `to`: Target URL (must be complete URL)
 
-## Docker ile Çalıştırma
+**Note**: All redirects use HTTP 302 (temporary redirect) status code.
 
-Dockerfile oluşturun:
+### Logging
+- `level`: Log level (debug, info, warn, error)
+- `format`: Log format (json, text)
+
+## Running with Docker
+
+Create Dockerfile:
 
 ```dockerfile
 FROM golang:1.24-alpine AS builder
@@ -101,9 +108,9 @@ RUN go mod download
 COPY . .
 RUN go build -o iletken
 
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
+FROM cgr.dev/chainguard/wolfi-base:latest
+RUN apk --no-cache add ca-certificates wget
+WORKDIR /app
 COPY --from=builder /app/iletken .
 COPY --from=builder /app/iletken.yml .
 EXPOSE 8080
@@ -112,10 +119,10 @@ CMD ["./iletken"]
 
 ```bash
 docker build -t iletken .
-docker run -p 8080:8080 -v $(pwd)/iletken.yml:/root/iletken.yml iletken
+docker run -p 8080:8080 -v $(pwd)/iletken.yml:/app/iletken.yml iletken
 ```
 
-## Systemd Servisi
+## Systemd Service
 
 `/etc/systemd/system/iletken.service`:
 
@@ -141,14 +148,14 @@ sudo systemctl enable iletken
 sudo systemctl start iletken
 ```
 
-## Performans
+## Performance
 
-fasthttp kullanımı sayesinde yüksek performans:
-- Düşük memory allocation
-- Hızlı HTTP parsing
+High performance thanks to fasthttp usage:
+- Low memory allocation
+- Fast HTTP parsing
 - Zero-copy operations
 - Connection pooling
 
-## Lisans
+## License
 
 MIT License
