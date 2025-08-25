@@ -1,0 +1,5 @@
+redirects:
+  - from: "devops.company.com"
+    to: "https://jira.company.com/board/13"
+  - from: "old.example.com"
+    to: "https://new.example.com"
