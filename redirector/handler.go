@@ -41,12 +41,6 @@ func (h *RedirectHandler) Handle(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	
-	// Default index page for root path
-	if string(ctx.Path()) == "/" {
-		h.handleIndexPage(ctx)
-		return
-	}
-	
 	// Get Host header
 	host := strings.ToLower(string(ctx.Host()))
 	
@@ -54,7 +48,7 @@ func (h *RedirectHandler) Handle(ctx *fasthttp.RequestCtx) {
 	if colonPos := strings.Index(host, ":"); colonPos != -1 {
 		host = host[:colonPos]
 	}
-	
+
 	h.logger.Debug("Request received",
 		slog.String("host", host),
 		slog.String("path", string(ctx.Path())),
@@ -62,6 +56,12 @@ func (h *RedirectHandler) Handle(ctx *fasthttp.RequestCtx) {
 		slog.String("user_agent", string(ctx.UserAgent())),
 		slog.String("remote_addr", ctx.RemoteAddr().String()),
 	)
+	
+	// Check if this is the default index page request (localhost or no specific host)
+	if string(ctx.Path()) == "/" && (host == "localhost" || host == "127.0.0.1" || host == "") {
+		h.handleIndexPage(ctx)
+		return
+	}
 	
 	// Find redirect rule
 	rule, found := h.rules[host]
@@ -74,19 +74,86 @@ func (h *RedirectHandler) Handle(ctx *fasthttp.RequestCtx) {
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.SetContentType("text/html; charset=utf-8")
 		fmt.Fprintf(ctx, `<!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>404 - Page Not Found</title>
+    <title>404 - Sayfa Bulunamadı</title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        .error { color: #d32f2f; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%%;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: #d32f2f;
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .message {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .host-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+        .footer {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 30px;
+        }
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <h1 class="error">404 - Page Not Found</h1>
-    <p>No redirect rule found for host (%s).</p>
-    <p><em>İletken - HTTP Redirector</em></p>
+    <div class="container">
+        <div class="logo">İletken</div>
+        <div class="error">404</div>
+        <div class="message">Sayfa Bulunamadı</div>
+        <div class="host-info">
+            Host: <strong>%s</strong><br>
+            Bu host için yönlendirme kuralı bulunamadı.
+        </div>
+        <div class="footer">
+            <p><a href="/" class="back-link">← Ana Sayfaya Dön</a></p>
+            <p><em>İletken - HTTP Redirector</em></p>
+        </div>
+    </div>
 </body>
 </html>`, host)
 		return
