@@ -17,7 +17,7 @@ import (
 
 const (
 	DefaultConfigPath = "./iletken.yml"
-	AppName          = "İletken"
+	AppName          = "iletken"
 	Version          = "1.0.0"
 )
 
